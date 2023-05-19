@@ -20,63 +20,62 @@ TODO:
 -> ok
 */
 
-func TestGetDiffRecord(t *testing.T) {
+func TestGetUpdated(t *testing.T) {
 	t1 := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 	tests := []struct {
-		name     string
-		record   sitecheck.ModificationRecord
-		url      string
-		modified time.Time
-		want     sitecheck.ModificationRecord
+		name   string
+		exist  sitecheck.SiteUpdates
+		recent sitecheck.RecentUpdate
+		want   sitecheck.SiteUpdates
 	}{
 		{
 			"add new modified date",
-			sitecheck.ModificationRecord{"https://example.com": []time.Time{t1}},
-			"https://example.com",
-			t1.Add(1 * time.Second),
-			sitecheck.ModificationRecord{"https://example.com": []time.Time{t1, t1.Add(1 * time.Second)}},
+			sitecheck.SiteUpdates{"https://example.com": []time.Time{t1}},
+			sitecheck.RecentUpdate{"https://example.com": t1.Add(1 * time.Second)},
+			sitecheck.SiteUpdates{"https://example.com": []time.Time{t1, t1.Add(1 * time.Second)}},
 		},
 		{
 			"no update when modified date is older",
-			sitecheck.ModificationRecord{"https://example.com": []time.Time{t1}},
-			"https://example.com",
-			t1.Add(-1 * time.Second),
-			sitecheck.ModificationRecord{},
+			sitecheck.SiteUpdates{"https://example.com": []time.Time{t1}},
+			sitecheck.RecentUpdate{"https://example.com": t1.Add(-1 * time.Second)},
+			sitecheck.SiteUpdates{},
 		},
 		{
 			"no update when modified date is equal to one of existing dates",
-			sitecheck.ModificationRecord{"https://example.com": []time.Time{t1}},
-			"https://example.com",
-			t1,
-			sitecheck.ModificationRecord{},
+			sitecheck.SiteUpdates{"https://example.com": []time.Time{t1}},
+			sitecheck.RecentUpdate{"https://example.com": t1},
+			sitecheck.SiteUpdates{},
 		},
 		{
 			"add new modified date when there is no existing date for the URL",
-			sitecheck.ModificationRecord{"https://example1.com": []time.Time{t1}},
-			"https://example.com",
-			t1,
-			sitecheck.ModificationRecord{"https://example.com": []time.Time{t1}},
+			sitecheck.SiteUpdates{"https://example1.com": []time.Time{t1}},
+			sitecheck.RecentUpdate{"https://example.com": t1},
+			sitecheck.SiteUpdates{"https://example.com": []time.Time{t1}},
 		},
 		{
 			"add new modified date when exists is empty",
-			sitecheck.ModificationRecord{},
-			"https://example.com",
-			t1,
-			sitecheck.ModificationRecord{"https://example.com": []time.Time{t1}},
+			sitecheck.SiteUpdates{},
+			sitecheck.RecentUpdate{"https://example.com": t1},
+			sitecheck.SiteUpdates{"https://example.com": []time.Time{t1}},
 		},
 		{
 			"add new modified date when the key exists but the value is empty",
-			sitecheck.ModificationRecord{"https://example.com": []time.Time{}},
-			"https://example.com",
-			t1,
-			sitecheck.ModificationRecord{"https://example.com": []time.Time{t1}},
+			sitecheck.SiteUpdates{"https://example.com": []time.Time{}},
+			sitecheck.RecentUpdate{"https://example.com": t1},
+			sitecheck.SiteUpdates{"https://example.com": []time.Time{t1}},
+		},
+		{
+			"do nothing when the empty update is passed",
+			sitecheck.SiteUpdates{"https://example.com": []time.Time{t1}},
+			sitecheck.RecentUpdate{},
+			sitecheck.SiteUpdates{},
 		},
 	}
 
 	t.Parallel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := sitecheck.GetDiffRecord(tt.record, tt.url, tt.modified)
+			got := sitecheck.GetUpdated(tt.exist, tt.recent)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetDiffRecord() = %v, want %v", got, tt.want)
 			}

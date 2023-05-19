@@ -1,17 +1,28 @@
 // Package sitecheck provides core features for sitecheck CLI
 package sitecheck
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
-// ModificationRecord is a map of site URLs to their modified dates.
-type ModificationRecord map[string][]time.Time
+// SiteUpdates is a map of site URLs to their past modified dates.
+type SiteUpdates map[string][]time.Time
+
+// RecentUpdate is a map of site URLs to their most recent modified date.
+type RecentUpdate map[string]time.Time
 
 // Repository is an interface for data storage
 // to read and write records of sites' modified dates.
-type Repository interface{}
+type Repository interface {
+	Query(ctx context.Context, urls ...string) (SiteUpdates, error)
+	Save(ctx context.Context, diff SiteUpdates) error
+}
 
 // Crawler is an interface for crawling sites.
-type Crawler interface{}
+type Crawler interface {
+	Crawl(ctx context.Context, urls ...string) (RecentUpdate, error)
+}
 
 // isModified returns true if the modified date is newer than any of the existing modified dates.
 // When there is no existing modified date, it returns true.
@@ -24,17 +35,19 @@ func isModified(exists []time.Time, modified time.Time) bool {
 	return true
 }
 
-// GetDiffRecord returns a new modification record
+// GetUpdated returns a new modification record
 // contains differences between the existing record and the new modified date.
-func GetDiffRecord(exists ModificationRecord, url string, modified time.Time) ModificationRecord {
-	diff := ModificationRecord{}
-	ms, ok := exists[url]
-	if !ok {
-		diff[url] = []time.Time{modified}
-		return diff
-	}
-	if isModified(ms, modified) {
-		diff[url] = append(ms, modified)
+func GetUpdated(exist SiteUpdates, recent RecentUpdate) SiteUpdates {
+	diff := SiteUpdates{}
+	for url, m := range recent {
+		ms, ok := exist[url]
+		if !ok {
+			diff[url] = []time.Time{m}
+			continue
+		}
+		if isModified(ms, m) {
+			diff[url] = append(ms, m)
+		}
 	}
 	return diff
 }
