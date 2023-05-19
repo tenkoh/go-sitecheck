@@ -24,23 +24,17 @@ func isModified(exists []time.Time, modified time.Time) bool {
 	return true
 }
 
-// UpdateModificationRecord returns a new modification record updated
-// with the given URL and modified date.
-func UpdateModificationRecord(
-	exists ModificationRecord,
-	url string,
-	modified time.Time,
-) ModificationRecord {
-	m := ModificationRecord{}
-	for k, v := range exists {
-		m[k] = v
+// GetDiffRecord returns a new modification record
+// contains differences between the existing record and the new modified date.
+func GetDiffRecord(exists ModificationRecord, url string, modified time.Time) ModificationRecord {
+	diff := ModificationRecord{}
+	ms, ok := exists[url]
+	if !ok {
+		diff[url] = []time.Time{modified}
+		return diff
 	}
-	if ms, ok := m[url]; ok {
-		if isModified(ms, modified) {
-			m[url] = append(ms, modified)
-		}
-	} else {
-		m[url] = []time.Time{modified}
+	if isModified(ms, modified) {
+		diff[url] = append(ms, modified)
 	}
-	return m
+	return diff
 }
