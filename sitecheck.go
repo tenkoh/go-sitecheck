@@ -16,7 +16,7 @@ type RecentUpdate map[string]time.Time
 // to read and write records of sites' modified dates.
 type Repository interface {
 	Query(ctx context.Context, urls ...string) (SiteUpdates, error)
-	Save(ctx context.Context, diff SiteUpdates) error
+	Upcert(ctx context.Context, updates SiteUpdates) error
 }
 
 // Crawler is an interface for crawling sites.
