@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 )
 
 const (
@@ -12,9 +13,9 @@ const (
 )
 
 type config struct {
-	Proxy    string   `json:"proxy"`
-	Interval int      `json:"interval"`
-	URLs     []string `json:"urls"`
+	Proxy    string        `json:"proxy"`
+	Interval time.Duration `json:"interval"`
+	URLs     []string      `json:"urls"`
 }
 
 func (c *config) setProxy(proxy string) error {
@@ -22,11 +23,11 @@ func (c *config) setProxy(proxy string) error {
 	return nil
 }
 
-func (c *config) setInterval(interval int) error {
-	if interval < 1 {
-		return fmt.Errorf("interval must be greater than 0, got %d", interval)
+func (c *config) setInterval(i int) error {
+	if i < 1 {
+		return fmt.Errorf("interval must be greater than 0, got %d", i)
 	}
-	c.Interval = interval
+	c.Interval = time.Duration(i) * time.Second
 	return nil
 }
 
