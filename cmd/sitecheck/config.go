@@ -48,7 +48,7 @@ func loadConfig(path string) (*config, error) {
 	var cfg config
 	_, err := os.Stat(path)
 	if err == nil {
-		f, err := os.OpenFile(path, os.O_RDONLY, 0644)
+		f, err := os.Open(path)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open config file %s: %w", path, err)
 		}
@@ -63,7 +63,7 @@ func loadConfig(path string) (*config, error) {
 	cfg.Interval = defaultInterval
 	cfg.URLs = []string{}
 
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0664)
+	f, err := os.Create(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create config file %s: %w", path, err)
 	}
