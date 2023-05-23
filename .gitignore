@@ -22,3 +22,8 @@ go.work
 
 # binaries
 cmd/sitecheck/sitecheck
+
+# OS generated files
+.DS_Store
+
+dist/
