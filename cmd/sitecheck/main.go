@@ -23,15 +23,18 @@ import (
 )
 
 var (
-	appConfig  *config
-	configPath string
+	appConfig      *config
+	configPath     string
+	repositoryPath string
 )
 
 const (
-	repositoryPath = "repository.json"
+	configFile     = "config.json"
+	repositoryFile = "repository.json"
 )
 
 func init() {
+	// set config path. on the config dir of each OS.
 	var dir string
 	if runtime.GOOS == "windows" {
 		dir = os.Getenv("APPDATA")
@@ -43,12 +46,19 @@ func init() {
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		log.Fatal(err)
 	}
-	configPath = filepath.Join(dir, "config.json")
+	configPath = filepath.Join(dir, configFile)
 	cfg, err := loadConfig(configPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	appConfig = cfg
+
+	// set repository path. on the same dir of the executable file.
+	exec, err := os.Executable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	repositoryPath = filepath.Join(filepath.Dir(exec), repositoryFile)
 }
 
 var configCmd = &cli.Command{
